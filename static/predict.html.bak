@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+     <title>COVID-19 X-Ray Detection APP</title>
+     <style>
+		  
+          *{
+               font-size:30px;
+			   
+			   
+          },	
+		  
+		  #containingDiv{
+			display:flex;
+			width:50px;
+			height:50px
+		  },
+		  img{
+			width:50px;
+			height:50px;
+			
+		  }
+		  
+	 </style>
+	 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+     
+</head>
+<body>
+	 <h1 class="text-center"> COVID-19 Diagnosis from Chest X-Rays</h1>
+     <input class="form-control"  id="image-selector" type="file">
+	 <div class= "text-center">
+     <button class="btn btn-primary mt-3 " id="predict-button">Predict</button>
+	 
+    
+     <p style="font-weight:bold" >Diagnosis:<span id="prediction"></span></p>
+	 <p  style="color: red" id="description" ></p>
+	 <p id="severityleft" ></p>
+	 <p id="severityright"></p>
+	 
+     <div id= "containingDiv">
+     <img id="selected-image" src=""/>
+	 </div>
+	 </div>
+     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+     <script>
+          let base64Image;
+          $("#image-selector").change(function(){
+               let reader=new FileReader();
+                reader.onload=function(e){
+				
+				//ORIGINAL code(INSIDE the onLoad Function)
+				//let reader=new FileReader();
+                //reader.onload=function(e){    
+                //    let dataURL =reader.result;
+                //    $('#selected-image').attr("src",dataURL);
+                //    base64Image=dataURL.replace("data:image/png;base64,","");
+                //    console.log(base64Image);
+                //}
+               
+               //reader.readAsDataURL($("#image-selector")[0].files[0]);
+               //$("#prediction").text("");
+				
+				
+								var filesToUploads = document.getElementById('image-selector').files;
+								var file = filesToUploads[0];
+								
+								var img = document.createElement("img");
+								img.src = e.target.result;
+
+								var canvas = document.createElement("canvas");
+								var ctx = canvas.getContext("2d");
+								ctx.drawImage(img, 0, 0);
+
+								var MAX_WIDTH = 400;
+								var MAX_HEIGHT = 400;
+								var width = img.width;
+								var height = img.height;
+
+								if (width > height) {
+									if (width > MAX_WIDTH) {
+										height *= MAX_WIDTH / width;
+										width = MAX_WIDTH;
+									}
+								} else {
+									if (height > MAX_HEIGHT) {
+										width *= MAX_HEIGHT / height;
+										height = MAX_HEIGHT;
+									}
+								}
+								canvas.width = width;
+								canvas.height = height;
+								var ctx = canvas.getContext("2d");
+								ctx.drawImage(img, 0, 0, width, height);
+
+								dataurl = canvas.toDataURL(file.type);
+								document.getElementById('selected-image').src = dataurl;
+							
+								reader.readAsDataURL(file);
+
+        
+					
+					
+                    //let dataURL =reader.result;
+                    //$('#selected-image').attr("src",dataURL);
+                    base64Image=dataurl.replace("data:image/png;base64,","");
+                    //console.log(base64Image);
+					//reader.readAsDataURL(file);
+					
+               }
+			   
+			   		   
+               reader.readAsDataURL($("#image-selector")[0].files[0]);
+               $("#prediction").text("");
+               $("#severityleft").text("");
+		       $("#severityright").text("");
+			   $("#description").text("");
+               
+          });
+          $("#predict-button").click(function(event){
+               let message={
+                     image:base64Image
+               }
+               console.log(message);
+               $.post("http://192.168.1.7:5000/predict",JSON.stringify(message),function(response){
+                    $("#prediction").text(response.prediction.info);
+                    $("#severityleft").text(response.prediction.severityleft);
+					$("#severityright").text(response.prediction.severityright);
+					$("#description").text(response.prediction.description);
+                    console.log(response);
+               });
+          });
+     </script>
+</body>
+</html>
